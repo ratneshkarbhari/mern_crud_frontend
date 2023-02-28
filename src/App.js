@@ -40,6 +40,13 @@ function App() {
     [name]: value})
   }
 
+  const handleUpdateFieldChange = (e) => {
+    const {name,value}= e.target;
+    setUpdateForm({...updateForm,
+    [name]: value})
+
+  }
+
   const createNote = async(e) => {
     e.preventDefault();
 
@@ -67,20 +74,40 @@ function App() {
     let res = await axios.delete(`http://localhost:3000/notes/${_id}`)
 
     const newNotes = [...notes].filter((note)=>{
-      return note._id != _id;
+      return note._id !== res.data.note._id;
     })
 
     setNotes(newNotes)
 
   }
 
-  const updateNote = async() => {
+  const updateNote = async(e) => {
+
+    e.preventDefault()
+
+    const {title,body} = updateForm
     
+    const res = await axios.put(`http://localhost:3000/notes/${updateForm._id}`,
+      {title,body}
+    )
+    
+
+    const newNotes = [...notes];
+    const noteIndex = notes.findIndex((note) => {
+      return note._id === updateForm._id;
+    })
+
+    newNotes[noteIndex] = res.data.note;
+
+    console.log(newNotes)
+
+    setNotes(newNotes)
+
   }
 
   const toggleUpdate = (note) => {
 
-    setUpdateForm(note.title,note.body,note._id)
+    setUpdateForm({title: note.title,body: note.body, _id:note._id})
 
   }
 
@@ -104,15 +131,20 @@ function App() {
       })}
 
 
+      {updateForm._id && 
+      <div>
       <h2>Update Note</h2>
 
       <form onSubmit={updateNote}>
 
-        <input  value={updateForm.title} name="title" />
-        <textarea  value={updateForm.body} name="body" />
+        <input onChange={handleUpdateFieldChange}  value={updateForm.title} name="title" />
+        <textarea onChange={handleUpdateFieldChange} value={updateForm.body} name="body" />
         <button type="submit">Update</button>
 
-      </form>
+      </form> </div>}
+
+      {!updateForm._id && 
+      <div>
 
       <h2>Create Note</h2>
 
@@ -123,7 +155,7 @@ function App() {
         <button type="submit">Create</button>
 
       </form>
-
+      </div>}
 
 
     </div>
